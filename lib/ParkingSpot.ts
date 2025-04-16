@@ -53,6 +53,7 @@ export class ParkingSpot {
 
   removeVehicle() {
     this.vehicle = null;
+    console.log("remove vehicle: ", this.vehicle)
     this.level.spotFreed();
   }
 
@@ -69,7 +70,7 @@ export class ParkingSpot {
   }
 
   print() {
-    if (this.vehicle == null) {
+    if (this.vehicle === null) {
       if (this.spotSize == VehicleSize.Motorcycle) {
         console.log("M")
       } else if (this.spotSize == VehicleSize.Compact) {
@@ -82,11 +83,25 @@ export class ParkingSpot {
     }
   }
 
+  getDetail() {
+    if (this.vehicle === null) {
+      if (this.spotSize == VehicleSize.Motorcycle) {
+        return "M"
+      } else if (this.spotSize == VehicleSize.Compact) {
+        return "C"
+      } else if (this.spotSize == VehicleSize.Large) {
+        return "B" 
+      }
+    } else {
+      return this.vehicle.getLicensePlate();
+    }
+  }
+
 
   async save(): Promise<string> {
     try {
       let vehicleId: string | undefined;
-      if (this.vehicle) {
+      if (this.vehicle !== null) {
         vehicleId = await this.vehicle.save();
       }
   
@@ -109,7 +124,10 @@ export class ParkingSpot {
   
       if (vehicleId) {
         parkingSpotData.vehicle = vehicleId;
+      } else {
+        parkingSpotData.vehicle = undefined;
       }
+      
   
       if (this._id) {
         parkingSpotData._id = this._id;

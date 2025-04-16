@@ -29,35 +29,55 @@ export class Database {
   }
 
   static async saveOrUpdate(model: any, data: any) {
-    await this.connect()
-
+    await this.connect();
+  
     try {
-      // if there is this data in database update that
       if (data._id) {
-        const id = data._id
-        const { _id, ...updateData } = data 
-
+        const id = data._id;
+        const { _id, ...updateData } = data;
+  
+        const updatePayload: any = {};
+        const setFields: any = {};
+        const unsetFields: any = {};
+  
+        for (const key in updateData) {
+          if (updateData[key] === undefined) {
+            unsetFields[key] = "";
+          } else {
+            setFields[key] = updateData[key];
+          }
+        }
+  
+        if (Object.keys(setFields).length > 0) {
+          updatePayload.$set = setFields;
+        }
+  
+        if (Object.keys(unsetFields).length > 0) {
+          updatePayload.$unset = unsetFields;
+        }
+  
         const updatedDoc = await model.findByIdAndUpdate(
           id,
-          updateData,
-          { new: true, runValidators: false },
-        )
-
+          updatePayload,
+          { new: true, runValidators: false }
+        );
+  
         if (!updatedDoc) {
-          throw new Error(`Record with id ${id} not found`)
+          throw new Error(`Record with id ${id} not found`);
         }
-
-        return updatedDoc
-      } else { // else create new one
-        const newRecord = new model(data)
-        await newRecord.save({ validateBeforeSave: false }) 
-        return newRecord
+  
+        return updatedDoc;
+      } else {
+        const newRecord = new model(data);
+        await newRecord.save({ validateBeforeSave: false });
+        return newRecord;
       }
     } catch (error) {
-      console.error("Error saving or updating record:", error)
-      throw error
+      console.error("Error saving or updating record:", error);
+      throw error;
     }
   }
+  
 
   static async find<T>(model: Model<T>, query: Partial<T>) {
     await this.connect()

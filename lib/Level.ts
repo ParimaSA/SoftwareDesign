@@ -99,7 +99,6 @@ export class Level {
   spotFreed() {
     // the vehicle is removed, increment the availableSpots
     this.availableSpots++
-    console.log("available: ", this.availableSpots)
   }
 
   unpark(licensePlate: string) {
@@ -115,6 +114,24 @@ export class Level {
     }
     return success;
   }
+
+  getLevelDetail() {
+    const result: { row: number; details: any[] }[] = []
+    const rows = Math.ceil(this.spots.length / Level.SPOTS_PER_ROW)
+  
+    for (let r = 0; r < rows; r++) {
+      const start = r * Level.SPOTS_PER_ROW
+      const end = start + Level.SPOTS_PER_ROW
+      const rowSpots = this.spots.slice(start, end).map(s => s.getDetail())
+  
+      result.push({
+        row: r + 1,
+        details: rowSpots,
+      })
+    }
+  
+    return result
+  }  
 
   print() {
     let lastRow = -1

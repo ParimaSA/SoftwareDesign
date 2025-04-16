@@ -55,6 +55,16 @@ export class ParkingLot {
     return false
   }
 
+  getParkingDetail() {
+    const result = []
+    for (let i = 0; i < ParkingLot.NUM_LEVELS; i++) {
+      result.push(
+        this.levels[i].getLevelDetail(),
+      )
+    }
+    return result
+  }
+
   async save(): Promise<string> {
     try {
       const levelIds = []

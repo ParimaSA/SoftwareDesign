@@ -4,14 +4,16 @@ import React, { useState, useEffect } from "react"
 
 export default function Home() {
   const [availableSpots, setAvailableSpots] = useState([])
+  const [parkingDetail, setParkingDetail] = useState([])
   const [licensePlateToPark, setLicensePlateToPark] = useState("")
   const [vehicleType, setVehicleType] = useState("car")
   const [licensePlateToUnpark, setLicensePlateToUnpark] = useState("")
   const [loading, setLoading] = useState(false)
+  const [activeLevel, setActiveLevel] = useState(0)
 
   const fetchAvailableSpots = async () => {
     try {
-      const res = await fetch("/api/parking")
+      const res = await fetch("/api/available-parking")
       const data = await res.json()
 
       if (data.success) {
@@ -24,8 +26,25 @@ export default function Home() {
     }
   }
 
+  const fetchParkingDetail = async () => {
+    try {
+      const res = await fetch("/api/parking-detail")
+      const data = await res.json()
+
+      if (data.success) {
+        const detailArray = data.data.map((level) => level.detail)
+        setParkingDetail(data.data)
+        console.log(data.data)
+      }
+    } catch (error) {
+      console.error("Error fetching parking detail:", error)
+      window.alert("Failed to fetch parking detail")
+    }
+  }
+
   useEffect(() => {
     fetchAvailableSpots()
+    fetchParkingDetail()
   }, [])
 
   const handleSubmit = async (e) => {
@@ -44,7 +63,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch("/api/parking", {
+      const response = await fetch("/api/park", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,6 +78,7 @@ export default function Home() {
         setLicensePlateToPark("")
         setVehicleType("car")
         fetchAvailableSpots()
+        fetchParkingDetail()
       } else {
         window.alert("Failed to park the vehicle: " + (result.message || "Unknown error"))
       }
@@ -99,6 +119,7 @@ export default function Home() {
         window.alert("Vehicle unparked successfully!")
         setLicensePlateToUnpark("")
         fetchAvailableSpots()
+        fetchParkingDetail()
       } else {
         window.alert("Failed to unpark the vehicle: " + (result.message || "Unknown error"))
       }
@@ -107,6 +128,15 @@ export default function Home() {
       window.alert("Error unparking vehicle. Please try again.")
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Function to get color based on spot type
+  const getSpotColor = (spotType) => {
+    if (spotType === 'C' || spotType === 'M' || spotType === 'B') {
+      return '#4ade80'; // Green for available spots
+    } else {
+      return '#ef4444'; // Red for occupied spots (license plates)
     }
   }
 
@@ -287,6 +317,108 @@ export default function Home() {
             {loading ? "Unparking..." : "Unpark Vehicle"}
           </button>
         </form>
+      </div>
+
+      {/* Parking Visualization Component */}
+      <div style={{
+        margin: "40px auto 0",
+        padding: "16px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        backgroundColor: "#fff",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+      }}>
+        <h2 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "16px" }}>Parking Map</h2>
+        
+        {/* Level selector tabs */}
+        <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+          {[0, 1, 2, 3, 4].map((level) => (
+            <button
+              key={level}
+              onClick={() => setActiveLevel(level)}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: activeLevel === level ? "#0070f3" : "#f5f5f5",
+                color: activeLevel === level ? "white" : "#333",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                cursor: "pointer",
+                flex: "1"
+              }}
+            >
+              Level {level + 1}
+            </button>
+          ))}
+        </div>
+        
+        {/* Parking spots visualization */}
+        <div style={{ padding: "16px", border: "1px solid #eee", borderRadius: "4px" }}>
+          {parkingDetail.length > 0 && parkingDetail[activeLevel] ? (
+            <div>
+              {parkingDetail[activeLevel].map((row, rowIndex) => (
+                <div key={rowIndex} style={{ display: "flex", marginBottom: "16px" }}>
+                  <div style={{ width: "60px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+                    Row {row.row}:
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {row.details.map((spot, spotIndex) => (
+                      <div 
+                        key={spotIndex}
+                        style={{
+                          width: "60px",
+                          height: "40px",
+                          backgroundColor: getSpotColor(spot),
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold"
+                        }}
+                        title={spot.length <= 1 ? 
+                          (spot === 'C' ? 'Car spot' : spot === 'M' ? 'Motorcycle spot' : 'Bus spot') : 
+                          `Occupied by ${spot}`}
+                      >
+                        {spot}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              Loading parking details...
+            </div>
+          )}
+        </div>
+        
+        <button
+          onClick={fetchParkingDetail}
+          style={{
+            width: "100%",
+            marginTop: "16px",
+            padding: "8px 16px",
+            backgroundColor: "#f5f5f5",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            cursor: "pointer"
+          }}
+        >
+          Refresh Map
+        </button>
+        
+        <div style={{ marginTop: "16px", display: "flex", gap: "16px", justifyContent: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ width: "20px", height: "20px", backgroundColor: "#4ade80", borderRadius: "4px" }}></div>
+            <span>Available</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ width: "20px", height: "20px", backgroundColor: "#ef4444", borderRadius: "4px" }}></div>
+            <span>Occupied</span>
+          </div>
+        </div>
       </div>
     </div>
   )

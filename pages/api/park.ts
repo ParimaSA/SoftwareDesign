@@ -9,25 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Database.connect()
   
   try {
-    if (req.method === 'GET') {
-      const parkingLotDoc = await Database.find(parkingLotModel, {})
-      
-      if (!parkingLotDoc) {
-        const newParkingLotInstance = new ParkingLot()
-        await newParkingLotInstance.save()
-        return res.status(201).json({
-          success: true,
-          data: newParkingLotInstance.getAllAvailableSpots(),
-        })
-      }
-      
-      const parkingLot = await ParkingLot.fromDocument(parkingLotDoc)
-      return res.status(200).json({
-        success: true,
-        data: parkingLot.getAllAvailableSpots(),
-      })
-    }
-    else if (req.method === 'POST') {
+    if (req.method === 'POST') {
       const { licensePlate, vehicleType } = req.body
       
       if (!licensePlate || !vehicleType) {
