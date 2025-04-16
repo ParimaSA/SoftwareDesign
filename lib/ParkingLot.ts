@@ -45,7 +45,7 @@ export class ParkingLot {
     return result
   }
 
-  unparkVehicle(licensePlate){
+  unparkVehicle(licensePlate: string){
     for(let i=0; i<ParkingLot.NUM_LEVELS; i++){
       let success = this.levels[i].unpark(licensePlate);
       if (success){

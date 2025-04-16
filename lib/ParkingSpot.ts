@@ -128,15 +128,10 @@ export class ParkingSpot {
     }
   }
 
-  static async fromDocument(doc: any): Promise<ParkingSpot> {
-    const mockLevel: any = {
-      spotFreed: () => {},
-      getAvailableSpots: () => 0,
-      _id: doc.level
-    }
+  static async fromDocument(doc: any, lvl: Level): Promise<ParkingSpot> {
   
     const spot = new ParkingSpot(
-      doc.level || mockLevel, 
+      lvl, 
       doc.row || 0, 
       doc.spotNumber || 0, 
       doc.spotSize !== undefined ? doc.spotSize : VehicleSize.Motorcycle

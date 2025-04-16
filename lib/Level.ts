@@ -99,19 +99,21 @@ export class Level {
   spotFreed() {
     // the vehicle is removed, increment the availableSpots
     this.availableSpots++
+    console.log("available: ", this.availableSpots)
   }
 
   unpark(licensePlate: string) {
+    let success = false;
     for(let i=0; i<this.spots.length; i++){
       if (this.spots[i].getVehicle()){
         let vehicle = this.spots[i].getVehicle();
-        if(vehicle.getLicensePlate() == licensePlate){
+        if(vehicle.getLicensePlate() === licensePlate){
           vehicle.clearSpots();
         }
-        return true;
+        success = true
       }
     }
-    return false;
+    return success;
   }
 
   print() {
@@ -151,7 +153,7 @@ export class Level {
         for (let i = 0; i < lvl.spots.length; i++) {
           const spotDoc = spotDocsMap.get(i)
           if (spotDoc) {
-            lvl.spots[i] = await ParkingSpot.fromDocument(spotDoc);
+            lvl.spots[i] = await ParkingSpot.fromDocument(spotDoc, lvl);
           }
         }
       }
